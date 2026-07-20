@@ -1,4 +1,5 @@
 
+try{if(!sessionStorage.getItem('ms_v')){sessionStorage.setItem('ms_v','1'); localStorage.setItem('ms_days', (+(localStorage.getItem('ms_days')||0))+ (localStorage.getItem('ms_last')===new Date().toDateString()?0:1)); localStorage.setItem('ms_last', new Date().toDateString());}}catch(e){}
 (function(){
   var tiers=[{n:'Free',p:0,f:['기본 피드']},{n:'Plus',p:4900,f:['광고 제거','주간 드롭']},{n:'Elite',p:14900,f:['전체 드롭','DM 우선']}];
   var root=document.getElementById('app');
