@@ -27,16 +27,37 @@ try{if(!sessionStorage.getItem('ms_v')){sessionStorage.setItem('ms_v','1'); loca
     }catch(e){return 1;}
   }
   function priceOf(n){var t=tiers.filter(function(x){return x.n===n;})[0]; return t?t.p:0;}
+  function paidDays(){
+    try{
+      var h=hist(), cut=Date.now()-7*864e5;
+      var days={};
+      h.forEach(function(x){
+        if((x.ts||0)<cut) return;
+        if(x.t&&x.t!=='Free'){
+          var d=new Date(x.ts); var k=d.getFullYear()+'-'+(d.getMonth()+1)+'-'+d.getDate();
+          days[k]=1;
+        }
+      });
+      // also count current paid tier day
+      if(cur!=='Free') days[dayKey(0)]=1;
+      return Object.keys(days).length;
+    }catch(e){return 0;}
+  }
   function render(){
     var trial=localStorage.getItem('msc_trial')===dayKey(0);
     var sc=0; try{sc=(JSON.parse(localStorage.getItem('msc_streak')||'{}').count)||0;}catch(e){}
     var th=hist();
     var visits=+(localStorage.getItem('ms_days')||0);
     var yr=priceOf(cur)*12;
+    var pd=paidDays();
+    var stick=daysOnTier();
+    var nextTier=cur==='Free'?'Plus':(cur==='Plus'?'Elite':null);
     root.innerHTML='<div class="card">현재 티어: <b style="color:var(--gold)">'+cur+'</b> · 가상 · 정진 · Elite 창 '+eliteLeft()
-      +'<div style="margin-top:6px"><span class="chip">🔥 '+sc+'일</span> <span class="chip">이 티어 '+daysOnTier()+'일</span> <span class="chip">방문일 '+visits+'</span>'
+      +'<div style="margin-top:6px"><span class="chip">🔥 '+sc+'일</span> <span class="chip">이 티어 '+stick+'일</span> <span class="chip">방문일 '+visits+'</span> <span class="chip">7일 유료일 '+pd+'</span>'
       +(trial?' <span class="chip">오늘 체험 ON</span>':'')
-      +(cur!=='Free'?' <span class="chip">연 환산 ₩'+yr.toLocaleString()+'</span>':'')+'</div>'
+      +(cur!=='Free'?' <span class="chip">연 환산 ₩'+yr.toLocaleString()+'</span>':'')
+      +(nextTier?' <span class="chip">다음 '+nextTier+'</span>':'')+'</div>'
+      +(stick>=3&&cur!=='Free'?'<p class="sub" style="margin:6px 0 0;color:#67e8f9">유지 '+stick+'일 · 리텐션 루프 ON</p>':'')
       +'<p class="sub" style="margin:8px 0 0">실결제 아님 · 티어 체험 시뮬 · 18+</p></div>'
       +'<div class="card"><b>비교 (가상)</b><table style="width:100%;font-size:12px;margin-top:8px;border-collapse:collapse">'
       +'<tr style="color:#8a8398"><td></td>'+tiers.map(function(t){return '<td style="padding:4px;text-align:center">'+(t.n===cur?'<b style="color:#e0b552">'+t.n+'</b>':t.n)+'</td>';}).join('')+'</tr>'
@@ -52,7 +73,7 @@ try{if(!sessionStorage.getItem('ms_v')){sessionStorage.setItem('ms_v','1'); loca
       +(cur!=='Free'?'<button id="cancel" class="sec" style="width:100%;margin-top:8px">Free로 다운그레이드</button>':'')
       +(th.length?'<div class="card"><b>티어 변경 이력</b><div class="sub" style="margin-top:6px">'
         +th.slice(0,6).map(function(x){return (x.t||'?')+(x.trial?' (체험)':'')+' · '+new Date(x.ts||0).toLocaleString();}).join('<br>')
-        +'</div></div>':'')
+        +'</div><button class="sec" id="undoTier" style="margin-top:8px;width:100%">↩ 직전 티어 변경 취소</button></div>':'')
       +'<div id="moneyPipe" style="margin-top:12px;padding:10px;border:1px solid #c5a46e44;border-radius:12px;background:#16121c;text-align:center;font-size:12px">'
       +'<div style="color:#e0b552;font-weight:700;margin-bottom:4px">💎 후원 · 파이프 (엔터 18+)</div>'
       +'<a style="color:#ece8f1;margin:0 6px" href="mailto:hoyashi95@gmail.com?subject=%5BMicroSub%5D%20support">☕ 후원 문의</a>'
@@ -70,6 +91,15 @@ try{if(!sessionStorage.getItem('ms_v')){sessionStorage.setItem('ms_v','1'); loca
       cur='Free'; localStorage.setItem('msc_tier',cur); localStorage.setItem('msc_since',String(Date.now()));
       try{var h=hist(); h.unshift({t:'Free',ts:Date.now(),down:1}); localStorage.setItem('msc_hist',JSON.stringify(h.slice(0,20)));}catch(e){}
       render(); try{legionTrack('activate',{down:1})}catch(e){}
+    };
+    var ut=document.getElementById('undoTier');
+    if(ut) ut.onclick=function(){
+      try{
+        var h=hist(); if(h.length<2){ h.shift(); localStorage.setItem('msc_hist',JSON.stringify(h)); cur='Free'; }
+        else { h.shift(); cur=h[0].t||'Free'; localStorage.setItem('msc_hist',JSON.stringify(h)); }
+        localStorage.setItem('msc_tier',cur); localStorage.setItem('msc_since',String(Date.now()));
+        render(); try{legionTrack('undo',{tier:cur})}catch(e){}
+      }catch(e){}
     };
     if(!document.getElementById('trial')&&cur==='Free'){
       var tb=document.createElement('button'); tb.id='trial'; tb.style.cssText='width:100%;margin-top:8px'; tb.textContent='오늘 Plus 체험(가상)';
