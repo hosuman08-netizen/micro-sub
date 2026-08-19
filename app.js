@@ -5,6 +5,7 @@ try{var _dk=new Date().toDateString();var _o=JSON.parse(localStorage.getItem('lw
 try{if(!sessionStorage.getItem('ms_v')){sessionStorage.setItem('ms_v','1'); localStorage.setItem('ms_days', (+(localStorage.getItem('ms_days')||0))+ (localStorage.getItem('ms_last')===new Date().toDateString()?0:1)); localStorage.setItem('ms_last', new Date().toDateString());}}catch(e){}
 (function(){
   var tiers=[{n:'Free',p:0,f:['기본 피드','광고 포함']},{n:'Plus',p:4900,f:['광고 제거','주간 드롭','북마크']},{n:'Elite',p:14900,f:['전체 드롭','DM 우선','얼리 액세스']}];
+  var PERKS=[{l:'기본 피드',has:['Free','Plus','Elite']},{l:'광고 제거',has:['Plus','Elite']},{l:'주간 드롭',has:['Plus','Elite']},{l:'북마크',has:['Plus','Elite']},{l:'얼리·DM',has:['Elite']}];
   var TIER_R={Free:0,Plus:1,Elite:2};
   function ymDay(dd){var d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(dd).padStart(2,'0');}
   function monthLabel(){var d=new Date();return d.getFullYear()+'년 '+(d.getMonth()+1)+'월';}
@@ -81,7 +82,11 @@ try{if(!sessionStorage.getItem('ms_v')){sessionStorage.setItem('ms_v','1'); loca
       +'<div class="card"><b>비교 (가상)</b><table style="width:100%;font-size:12px;margin-top:8px;border-collapse:collapse">'
       +'<tr style="color:#8a8398"><td></td>'+tiers.map(function(t){return '<td style="padding:4px;text-align:center">'+(t.n===cur?'<b style="color:#e0b552">'+t.n+'</b>':t.n)+'</td>';}).join('')+'</tr>'
       +'<tr><td>월</td>'+tiers.map(function(t){return '<td style="padding:4px;text-align:center">₩'+t.p.toLocaleString()+'</td>';}).join('')+'</tr>'
-      +'<tr><td>혜택</td>'+tiers.map(function(t){return '<td style="padding:4px;text-align:center">'+t.f.length+'</td>';}).join('')+'</tr>'
+      +PERKS.map(function(pk){
+        return '<tr><td>'+pk.l+'</td>'+tiers.map(function(t){
+          return '<td style="padding:4px;text-align:center">'+(pk.has.indexOf(t.n)>=0?'✓':'–')+'</td>';
+        }).join('')+'</tr>';
+      }).join('')
       +'</table></div>'
       +tiers.map(function(t){
         var on=t.n===cur;
