@@ -59,7 +59,7 @@ try{if(!sessionStorage.getItem('ms_v')){sessionStorage.setItem('ms_v','1'); loca
   function archTier(){try{return localStorage.getItem('msc_arch_t')||'all';}catch(e){return 'all';}}
   /* WAVE63: hide locked archive rows. Filter only — not cancel hide. */
   function archHideLock(){try{return localStorage.getItem('msc_arch_hide')==='1';}catch(e){return false;}}
-  function archiveHtml(curN){
+  function archiveFiltered(curN){
     var rank=TIER_R[curN]||0;
     var m=archMonth();
     var t=archTier();
@@ -70,6 +70,11 @@ try{if(!sessionStorage.getItem('ms_v')){sessionStorage.setItem('ms_v','1'); loca
     }
     if(t==='Free'||t==='Plus'||t==='Elite') list=list.filter(function(d){return d.n===t;});
     if(archHideLock()) list=list.filter(function(d){return rank>=d.r;});
+    return list;
+  }
+  function archiveHtml(curN){
+    var rank=TIER_R[curN]||0;
+    var list=archiveFiltered(curN);
     var rows=list.map(function(d){
       var open=rank>=d.r;
       return '<div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid #2a2438">'
@@ -78,6 +83,34 @@ try{if(!sessionStorage.getItem('ms_v')){sessionStorage.setItem('ms_v','1'); loca
         +'<span class="chip">'+(open?'열림':'잠김')+'</span></div>';
     }).join('');
     return (rows||'<p class="sub" style="margin:8px 0">'+(archHideLock()?'잠긴 드롭 숨김':'이 달 기록 없음')+'</p>');
+  }
+  /* WAVE69: open-only archive CSV. Title/date/tier — no MRR, no revenue. */
+  function csvCell(v){
+    var s=String(v==null?'':v);
+    if(/[",\n\r]/.test(s)) return '"'+s.replace(/"/g,'""')+'"';
+    return s;
+  }
+  function archiveOpenCsv(curN){
+    var rank=TIER_R[curN]||0;
+    var list=archiveFiltered(curN).filter(function(d){return rank>=d.r;});
+    var lines=['title,date,tier'];
+    list.forEach(function(d){
+      lines.push([d.title,d.date,d.n].map(csvCell).join(','));
+    });
+    return lines.join('\n');
+  }
+  function exportArchiveCsv(curN){
+    var csv=archiveOpenCsv(curN);
+    try{
+      var blob=new Blob([csv],{type:'text/csv;charset=utf-8'});
+      var url=URL.createObjectURL(blob);
+      var a=document.createElement('a'); a.href=url; a.download='msc-archive-open.csv';
+      document.body.appendChild(a); a.click();
+      if(a.parentNode) a.parentNode.removeChild(a);
+      setTimeout(function(){try{URL.revokeObjectURL(url);}catch(e){}},400);
+    }catch(e){
+      if(navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(csv);
+    }
   }
   function archMonthChips(){
     var cur=archMonth();
@@ -195,7 +228,9 @@ try{if(!sessionStorage.getItem('ms_v')){sessionStorage.setItem('ms_v','1'); loca
       +'<div class="card" id="dropArch"><b>지난 드롭</b> <span class="chip">아카이브</span>'
       +'<p class="sub" style="margin:6px 0 4px">가상 · 매출/구독자 숫자 없음 · 결제 아님</p>'
       +(archOpen
-        ? archMonthChips()+archTierChips()+archHideChips()+archiveHtml(cur)+'<button class="sec" id="archHide" style="width:100%;margin-top:8px">접기</button>'
+        ? archMonthChips()+archTierChips()+archHideChips()+archiveHtml(cur)
+          +'<button class="sec" id="archCsv" style="width:100%;margin-top:8px">열림만 CSV (제목·날짜·티어)</button>'
+          +'<button class="sec" id="archHide" style="width:100%;margin-top:8px">접기</button>'
         : '<button class="sec" id="archShow" style="width:100%">지난 2개월 보기</button>')
       +'</div>'
       +'<div class="card" id="dropNCard"><b>드롭 알림</b> <span class="chip" id="dropNChip">'+(dropNOn()?'가상 ON':'OFF')+'</span>'
@@ -241,6 +276,11 @@ try{if(!sessionStorage.getItem('ms_v')){sessionStorage.setItem('ms_v','1'); loca
     });
     var archShow=document.getElementById('archShow');
     if(archShow) archShow.onclick=function(){ archOpen=true; render(); try{legionTrack('archive_open',{})}catch(e){} };
+    var archCsv=document.getElementById('archCsv');
+    if(archCsv) archCsv.onclick=function(){
+      exportArchiveCsv(cur);
+      try{legionTrack('archive_csv_open',{n:archiveOpenCsv(cur).split('\n').length-1})}catch(e){}
+    };
     var archHide=document.getElementById('archHide');
     if(archHide) archHide.onclick=function(){ archOpen=false; render(); };
     root.querySelectorAll('#archM [data-am]').forEach(function(b){
