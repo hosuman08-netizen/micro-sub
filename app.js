@@ -7,6 +7,16 @@ try{if(!sessionStorage.getItem('ms_v')){sessionStorage.setItem('ms_v','1'); loca
   var tiers=[{n:'Free',p:0,f:['기본 피드','광고 포함']},{n:'Plus',p:4900,f:['광고 제거','주간 드롭','북마크']},{n:'Elite',p:14900,f:['전체 드롭','DM 우선','얼리 액세스']}];
   var PERKS=[{l:'기본 피드',has:['Free','Plus','Elite']},{l:'광고 제거',has:['Plus','Elite']},{l:'주간 드롭',has:['Plus','Elite']},{l:'북마크',has:['Plus','Elite']},{l:'얼리·DM',has:['Elite']}];
   var TIER_R={Free:0,Plus:1,Elite:2};
+  /* GOLD50 TOP3: Twitch/YT 티어 배지 시각. 결제/MRR 아님 */
+  var BADGE={
+    Free:{e:'⚪',c:'#94a3b8',bg:'#1c1826'},
+    Plus:{e:'⭐',c:'#e0b552',bg:'#2a2310'},
+    Elite:{e:'💎',c:'#c4b5fd',bg:'#1e1730'}
+  };
+  function badgeHtml(n){
+    var b=BADGE[n]||BADGE.Free;
+    return '<span class="chip" style="background:'+b.bg+';color:'+b.c+';border:1px solid '+b.c+'66;font-weight:800">'+b.e+' '+n+'</span>';
+  }
   function ymDay(dd){var d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(dd).padStart(2,'0');}
   function monthLabel(){var d=new Date();return d.getFullYear()+'년 '+(d.getMonth()+1)+'월';}
   var DROPS=[{n:'Free',r:0,date:ymDay(1),title:'공개 피드 하이라이트'},{n:'Plus',r:1,date:ymDay(5),title:'주간 드롭 · 멤버 노트'},{n:'Elite',r:2,date:ymDay(3),title:'얼리 액세스 비하인드'}];
@@ -69,7 +79,7 @@ try{if(!sessionStorage.getItem('ms_v')){sessionStorage.setItem('ms_v','1'); loca
     var pd=paidDays();
     var stick=daysOnTier();
     var nextTier=cur==='Free'?'Plus':(cur==='Plus'?'Elite':null);
-    root.innerHTML='<div class="card">현재 티어: <b style="color:var(--gold)">'+cur+'</b> · 가상 · 정진 · Elite 창 '+eliteLeft()
+    root.innerHTML='<div class="card">현재 티어: '+badgeHtml(cur)+' · 가상 · 정진 · Elite 창 '+eliteLeft()
       +'<div style="margin-top:6px"><span class="chip">🔥 '+sc+'일</span> <span class="chip">이 티어 '+stick+'일</span> <span class="chip">방문일 '+visits+'</span> <span class="chip">7일 유료일 '+pd+'</span>'
       +(trial?' <span class="chip" id="trialLeft">오늘 체험 <b>'+eliteLeft()+'</b> 남음</span>':'')
       +(cur!=='Free'?' <span class="chip">연 환산 ₩'+yr.toLocaleString()+'</span>':'')
@@ -80,7 +90,7 @@ try{if(!sessionStorage.getItem('ms_v')){sessionStorage.setItem('ms_v','1'); loca
       +'<p class="sub" style="margin:6px 0 4px">가상 칸 · 결제/매출 숫자 없음 · 현재 '+cur+'</p>'
       +dropListHtml(cur)+'</div>'
       +'<div class="card"><b>비교 (가상)</b><table style="width:100%;font-size:12px;margin-top:8px;border-collapse:collapse">'
-      +'<tr style="color:#8a8398"><td></td>'+tiers.map(function(t){return '<td style="padding:4px;text-align:center">'+(t.n===cur?'<b style="color:#e0b552">'+t.n+'</b>':t.n)+'</td>';}).join('')+'</tr>'
+      +'<tr style="color:#8a8398"><td></td>'+tiers.map(function(t){return '<td style="padding:4px;text-align:center">'+(t.n===cur?badgeHtml(t.n):'<span style="opacity:.8">'+((BADGE[t.n]||{}).e||'')+' '+t.n+'</span>')+'</td>';}).join('')+'</tr>'
       +'<tr><td>월</td>'+tiers.map(function(t){return '<td style="padding:4px;text-align:center">₩'+t.p.toLocaleString()+'</td>';}).join('')+'</tr>'
       +PERKS.map(function(pk){
         return '<tr><td>'+pk.l+'</td>'+tiers.map(function(t){
@@ -90,7 +100,7 @@ try{if(!sessionStorage.getItem('ms_v')){sessionStorage.setItem('ms_v','1'); loca
       +'</table></div>'
       +tiers.map(function(t){
         var on=t.n===cur;
-        return '<div class="card" style="'+(on?'border-color:#e0b552':'')+'"><b>'+t.n+'</b> · ₩'+t.p.toLocaleString()+(on?' · ✓ 선택중':'')
+        return '<div class="card" style="'+(on?'border-color:#e0b552':'')+'">'+badgeHtml(t.n)+' · ₩'+t.p.toLocaleString()+(on?' · ✓ 선택중':'')
           +'<p class="sub" style="margin:6px 0 0">드롭 '+dropOf(t.n)+'</p>'
           +'<ul style="margin:8px 0 8px 18px;color:var(--dim);font-size:13px">'+t.f.map(function(x){return '<li>'+x+'</li>';}).join('')+'</ul>'
           +'<button data-t="'+t.n+'">'+(on?'유지':'선택 (가상)')+'</button></div>';
