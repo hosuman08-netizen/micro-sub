@@ -299,26 +299,35 @@ try{if(!sessionStorage.getItem('ms_v')){sessionStorage.setItem('ms_v','1'); loca
     };
     /* WAVE94: 1-tap copy open-only CSV. Title/date/tier — no MRR, no revenue. */
     /* WAVE102: after copy keep #archCsvN row count. Status on button only. */
+    /* WAVE112: copy confirm reverts to CSV 복사 · name. No fake MRR. */
     var archCsvCopy=document.getElementById('archCsvCopy');
     if(archCsvCopy) archCsvCopy.onclick=function(){
       var csv=archiveOpenCsv(cur);
       var n=archiveOpenCount(cur);
       var nEl=document.getElementById('archCsvN');
+      var orig='CSV 복사 · '+archiveCsvName();
       var keepN=function(){ if(nEl) nEl.textContent='열림 '+n+'행 · 매출숫자 0'; };
+      var revert=function(){ keepN(); archCsvCopy.textContent=orig; };
+      var armRevert=function(){
+        try{clearTimeout(archCsvCopy._revT);}catch(e){}
+        archCsvCopy._revT=setTimeout(revert,1600);
+      };
       var done=function(){
         keepN();
         archCsvCopy.textContent='복사됨 · '+n+'행 · '+archiveCsvName();
+        armRevert();
       };
       var fail=function(msg){
         keepN();
         archCsvCopy.textContent=msg+' · '+n+'행 · '+archiveCsvName();
+        armRevert();
       };
       if(navigator.clipboard && navigator.clipboard.writeText){
         navigator.clipboard.writeText(csv).then(done, function(){ fail('복사 실패 · 다운로드'); });
       }else{
         fail('클립보드 없음 · 다운로드');
       }
-      try{legionTrack('archive_csv_copy',{n:csv.split('\n').length-1})}catch(e){}
+      try{legionTrack('archive_csv_copy_revert',{n:csv.split('\n').length-1})}catch(e){}
     };
     var archHide=document.getElementById('archHide');
     if(archHide) archHide.onclick=function(){ archOpen=false; render(); };
