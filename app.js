@@ -304,6 +304,7 @@ try{if(!sessionStorage.getItem('ms_v')){sessionStorage.setItem('ms_v','1'); loca
     /* WAVE127: tap during revert = instant original. No fake MRR. */
     /* WAVE133: month/tier chip during revert = instant orig. No fake MRR. */
     /* WAVE147: hide-lock chip during revert = instant orig. No fake MRR. */
+    /* WAVE156: fold during revert = instant orig. No fake MRR. */
     var revertArchCsvCopyNow=function(){
       var btn=document.getElementById('archCsvCopy');
       if(!btn || !btn._revT) return false;
@@ -361,7 +362,10 @@ try{if(!sessionStorage.getItem('ms_v')){sessionStorage.setItem('ms_v','1'); loca
       try{legionTrack('archive_csv_copy_revert',{n:csv.split('\n').length-1})}catch(e){}
     };
     var archHide=document.getElementById('archHide');
-    if(archHide) archHide.onclick=function(){ archOpen=false; render(); };
+    if(archHide) archHide.onclick=function(){
+      revertArchCsvCopyNow();
+      archOpen=false; render();
+    };
     root.querySelectorAll('#archM [data-am]').forEach(function(b){
       b.onclick=function(){
         revertArchCsvCopyNow();
