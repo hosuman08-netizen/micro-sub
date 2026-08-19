@@ -37,6 +37,7 @@ try{if(!sessionStorage.getItem('ms_v')){sessionStorage.setItem('ms_v','1'); loca
   /* WAVE168: CSV button focus ring 0.4s. No fake MRR. */
   /* WAVE171: retap during ring = restart ring. No fake MRR. */
   /* WAVE175: ring tap = ring off. No fake MRR. */
+  /* WAVE179: after ring off, keep CSV focus. No fake MRR. */
   var csvRingTok=0;
   function csvRingMs(){ return 400; }
   function csvRingIsOn(){
@@ -63,11 +64,21 @@ try{if(!sessionStorage.getItem('ms_v')){sessionStorage.setItem('ms_v','1'); loca
     try{btn.setAttribute('data-re-ring', retr?'1':'0');}catch(e2){}
     try{btn.setAttribute('data-ring-off','0');}catch(e3){}
     try{btn.setAttribute('data-ring-tap','1');}catch(e4){}
+    try{btn.setAttribute('data-focus-after-kill','0');}catch(e5){}
     var tok=++csvRingTok;
     setTimeout(function(){
       if(tok!==csvRingTok) return;
       clearCsvRing();
     }, csvRingMs());
+    return true;
+  }
+  function holdCsvFocus(){
+    var btn=document.getElementById('archCsvCopy');
+    if(!btn) return false;
+    try{btn.tabIndex=0;}catch(e0){}
+    try{btn.focus();}catch(e1){}
+    try{btn.scrollIntoView({block:'nearest'});}catch(e2){}
+    try{btn.setAttribute('data-focus-after-kill','1');}catch(e3){}
     return true;
   }
   function killCsvRing(){
@@ -77,6 +88,7 @@ try{if(!sessionStorage.getItem('ms_v')){sessionStorage.setItem('ms_v','1'); loca
     if(!btn) return;
     try{btn.setAttribute('data-ring-off','1');}catch(e2){}
     try{btn.setAttribute('data-ring-tap','1');}catch(e3){}
+    holdCsvFocus();
   }
   function ymOf(off){
     var d=new Date(); d.setDate(1); d.setMonth(d.getMonth()+off);
