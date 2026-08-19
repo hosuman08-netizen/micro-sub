@@ -36,6 +36,7 @@ try{if(!sessionStorage.getItem('ms_v')){sessionStorage.setItem('ms_v','1'); loca
   var archOpen=false;
   /* WAVE168: CSV button focus ring 0.4s. No fake MRR. */
   /* WAVE171: retap during ring = restart ring. No fake MRR. */
+  /* WAVE175: ring tap = ring off. No fake MRR. */
   var csvRingTok=0;
   function csvRingMs(){ return 400; }
   function csvRingIsOn(){
@@ -60,12 +61,22 @@ try{if(!sessionStorage.getItem('ms_v')){sessionStorage.setItem('ms_v','1'); loca
     btn.style.boxShadow='0 0 0 4px #e0b55255';
     try{btn.setAttribute('data-csv-ring','1');}catch(e1){}
     try{btn.setAttribute('data-re-ring', retr?'1':'0');}catch(e2){}
+    try{btn.setAttribute('data-ring-off','0');}catch(e3){}
+    try{btn.setAttribute('data-ring-tap','1');}catch(e4){}
     var tok=++csvRingTok;
     setTimeout(function(){
       if(tok!==csvRingTok) return;
       clearCsvRing();
     }, csvRingMs());
     return true;
+  }
+  function killCsvRing(){
+    csvRingTok++;
+    var btn=document.getElementById('archCsvCopy');
+    clearCsvRing();
+    if(!btn) return;
+    try{btn.setAttribute('data-ring-off','1');}catch(e2){}
+    try{btn.setAttribute('data-ring-tap','1');}catch(e3){}
   }
   function ymOf(off){
     var d=new Date(); d.setDate(1); d.setMonth(d.getMonth()+off);
@@ -340,7 +351,7 @@ try{if(!sessionStorage.getItem('ms_v')){sessionStorage.setItem('ms_v','1'); loca
     /* WAVE156: fold during revert = instant orig. No fake MRR. */
     /* WAVE163: after fold-restore, focus CSV button. Archive stays open this tap. */
     /* WAVE168: CSV button focus ring 0.4s. No fake MRR. */
-    /* WAVE171: retap during ring = restart ring. No fake MRR. */
+    /* WAVE175: ring tap = ring off. No fake MRR. */
     var revertArchCsvCopyNow=function(){
       var btn=document.getElementById('archCsvCopy');
       if(!btn || !btn._revT) return false;
@@ -362,7 +373,7 @@ try{if(!sessionStorage.getItem('ms_v')){sessionStorage.setItem('ms_v','1'); loca
     };
     var archCsvCopy=document.getElementById('archCsvCopy');
     if(archCsvCopy) archCsvCopy.onclick=function(){
-      if(csvRingIsOn()){ armCsvRing(); return; }
+      if(csvRingIsOn()){ killCsvRing(); return; }
       var csv=archiveOpenCsv(cur);
       var n=archiveOpenCount(cur);
       var nEl=document.getElementById('archCsvN');
