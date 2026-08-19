@@ -34,6 +34,8 @@ try{if(!sessionStorage.getItem('ms_v')){sessionStorage.setItem('ms_v','1'); loca
   }
   var root=document.getElementById('app');
   var cur=localStorage.getItem('msc_tier')||'Free';
+  /* GOLD50 TOP5: Memberful/Stripe Keep/Down. 숨김취소 금지 — 두 버튼 항상 같이. */
+  var cancelOpen=false;
   function dayKey(off){var d=new Date();d.setDate(d.getDate()+(off||0));return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');}
   function eliteLeft(){var e=new Date();e.setHours(24,0,0,0);var ms=Math.max(0,e-Date.now());var h=Math.floor(ms/3600000),m=Math.floor((ms%3600000)/60000);return String(h).padStart(2,'0')+':'+String(m).padStart(2,'0');}
   function hist(){try{return JSON.parse(localStorage.getItem('msc_hist')||'[]');}catch(e){return[];}}
@@ -105,7 +107,12 @@ try{if(!sessionStorage.getItem('ms_v')){sessionStorage.setItem('ms_v','1'); loca
           +'<ul style="margin:8px 0 8px 18px;color:var(--dim);font-size:13px">'+t.f.map(function(x){return '<li>'+x+'</li>';}).join('')+'</ul>'
           +'<button data-t="'+t.n+'">'+(on?'유지':'선택 (가상)')+'</button></div>';
       }).join('')
-      +(cur!=='Free'?'<button id="cancel" class="sec" style="width:100%;margin-top:8px">Free로 다운그레이드</button>':'')
+      +(cur!=='Free'?(cancelOpen
+        ? '<div class="card" id="cancelCard" style="border-color:#f87171"><b>취소 확인</b>'
+          +'<p class="sub" style="margin:6px 0 8px">잃는 혜택: '+(tiers.filter(function(x){return x.n===cur;})[0]||{f:[]}).f.join(' · ')+'</p>'
+          +'<div class="row"><button id="keepTier">Keep '+cur+'</button><button id="downFree" class="sec">Down to Free</button></div>'
+          +'<p class="sub" style="margin:8px 0 0">숨김취소 없음 · Keep/Down 둘 다 보임 · 허위 MRR 0</p></div>'
+        : '<button id="cancel" class="sec" style="width:100%;margin-top:8px">Free로 다운그레이드</button>'):'')
       +(th.length?'<div class="card"><b>티어 변경 이력</b><div class="sub" style="margin-top:6px">'
         +th.slice(0,6).map(function(x){return (x.t||'?')+(x.trial?' (체험)':'')+' · '+new Date(x.ts||0).toLocaleString();}).join('<br>')
         +'</div><button class="sec" id="undoTier" style="margin-top:8px;width:100%">↩ 직전 티어 변경 취소</button></div>':'')
@@ -123,6 +130,17 @@ try{if(!sessionStorage.getItem('ms_v')){sessionStorage.setItem('ms_v','1'); loca
     });
     var cancel=document.getElementById('cancel');
     if(cancel) cancel.onclick=function(){
+      cancelOpen=true; render();
+      try{legionTrack('cancel_prompt',{tier:cur})}catch(e){}
+    };
+    var keep=document.getElementById('keepTier');
+    if(keep) keep.onclick=function(){
+      cancelOpen=false; render();
+      try{legionTrack('keep_tier',{tier:cur})}catch(e){}
+    };
+    var down=document.getElementById('downFree');
+    if(down) down.onclick=function(){
+      cancelOpen=false;
       cur='Free'; localStorage.setItem('msc_tier',cur); localStorage.setItem('msc_since',String(Date.now()));
       try{var h=hist(); h.unshift({t:'Free',ts:Date.now(),down:1}); localStorage.setItem('msc_hist',JSON.stringify(h.slice(0,20)));}catch(e){}
       render(); try{legionTrack('activate',{down:1})}catch(e){}
