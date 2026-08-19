@@ -245,6 +245,7 @@ try{if(!sessionStorage.getItem('ms_v')){sessionStorage.setItem('ms_v','1'); loca
         ? archMonthChips()+archTierChips()+archHideChips()+archiveHtml(cur)
           +'<p class="sub" id="archCsvN" style="margin:8px 0 0">열림 '+archiveOpenCount(cur)+'행 · 매출숫자 0</p>'
           +'<button class="sec" id="archCsv" style="width:100%;margin-top:8px">열림만 CSV · '+archiveCsvName()+'</button>'
+          +'<button class="sec" id="archCsvCopy" style="width:100%;margin-top:8px">CSV 복사 · '+archiveCsvName()+'</button>'
           +'<button class="sec" id="archHide" style="width:100%;margin-top:8px">접기</button>'
         : '<button class="sec" id="archShow" style="width:100%">지난 2개월 보기</button>')
       +'</div>'
@@ -295,6 +296,19 @@ try{if(!sessionStorage.getItem('ms_v')){sessionStorage.setItem('ms_v','1'); loca
     if(archCsv) archCsv.onclick=function(){
       exportArchiveCsv(cur);
       try{legionTrack('archive_csv_open',{n:archiveOpenCsv(cur).split('\n').length-1})}catch(e){}
+    };
+    /* WAVE94: 1-tap copy open-only CSV. Title/date/tier — no MRR, no revenue. */
+    var archCsvCopy=document.getElementById('archCsvCopy');
+    if(archCsvCopy) archCsvCopy.onclick=function(){
+      var csv=archiveOpenCsv(cur);
+      var nEl=document.getElementById('archCsvN');
+      var done=function(){ if(nEl) nEl.textContent='열림 '+archiveOpenCount(cur)+'행 복사됨 · 매출숫자 0'; };
+      if(navigator.clipboard && navigator.clipboard.writeText){
+        navigator.clipboard.writeText(csv).then(done, function(){ if(nEl) nEl.textContent='복사 실패 · 다운로드 사용'; });
+      }else{
+        if(nEl) nEl.textContent='클립보드 없음 · 다운로드 사용';
+      }
+      try{legionTrack('archive_csv_copy',{n:csv.split('\n').length-1})}catch(e){}
     };
     var archHide=document.getElementById('archHide');
     if(archHide) archHide.onclick=function(){ archOpen=false; render(); };
