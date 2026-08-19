@@ -57,6 +57,8 @@ try{if(!sessionStorage.getItem('ms_v')){sessionStorage.setItem('ms_v','1'); loca
   function archMonth(){try{return localStorage.getItem('msc_arch_m')||'all';}catch(e){return 'all';}}
   /* WAVE57: archive tier chips. Virtual titles only — no MRR/subs. */
   function archTier(){try{return localStorage.getItem('msc_arch_t')||'all';}catch(e){return 'all';}}
+  /* WAVE63: hide locked archive rows. Filter only — not cancel hide. */
+  function archHideLock(){try{return localStorage.getItem('msc_arch_hide')==='1';}catch(e){return false;}}
   function archiveHtml(curN){
     var rank=TIER_R[curN]||0;
     var m=archMonth();
@@ -67,6 +69,7 @@ try{if(!sessionStorage.getItem('ms_v')){sessionStorage.setItem('ms_v','1'); loca
       list=list.filter(function(d){return String(d.date).indexOf(ym.prefix)===0;});
     }
     if(t==='Free'||t==='Plus'||t==='Elite') list=list.filter(function(d){return d.n===t;});
+    if(archHideLock()) list=list.filter(function(d){return rank>=d.r;});
     var rows=list.map(function(d){
       var open=rank>=d.r;
       return '<div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid #2a2438">'
@@ -74,7 +77,7 @@ try{if(!sessionStorage.getItem('ms_v')){sessionStorage.setItem('ms_v','1'); loca
         +'<div class="sub" style="margin:2px 0 0">'+d.date+' · '+d.n+'</div></div>'
         +'<span class="chip">'+(open?'열림':'잠김')+'</span></div>';
     }).join('');
-    return (rows||'<p class="sub" style="margin:8px 0">이 달 기록 없음</p>');
+    return (rows||'<p class="sub" style="margin:8px 0">'+(archHideLock()?'잠긴 드롭 숨김':'이 달 기록 없음')+'</p>');
   }
   function archMonthChips(){
     var cur=archMonth();
@@ -100,6 +103,16 @@ try{if(!sessionStorage.getItem('ms_v')){sessionStorage.setItem('ms_v','1'); loca
       +chip('Free','Free')
       +chip('Plus','Plus')
       +chip('Elite','Elite')
+      +'</div>';
+  }
+  function archHideChips(){
+    var on=archHideLock();
+    function chip(v,label,active){
+      return '<button type="button" class="sec" data-ah="'+v+'" style="flex:1;'+(active?'border-color:#e0b552;color:#e0b552;font-weight:800':'')+'">'+label+'</button>';
+    }
+    return '<div id="archH" class="row" style="margin:4px 0 4px;gap:6px">'
+      +chip('0','잠김 포함',!on)
+      +chip('1','잠김 숨김',on)
       +'</div>';
   }
   var root=document.getElementById('app');
@@ -182,7 +195,7 @@ try{if(!sessionStorage.getItem('ms_v')){sessionStorage.setItem('ms_v','1'); loca
       +'<div class="card" id="dropArch"><b>지난 드롭</b> <span class="chip">아카이브</span>'
       +'<p class="sub" style="margin:6px 0 4px">가상 · 매출/구독자 숫자 없음 · 결제 아님</p>'
       +(archOpen
-        ? archMonthChips()+archTierChips()+archiveHtml(cur)+'<button class="sec" id="archHide" style="width:100%;margin-top:8px">접기</button>'
+        ? archMonthChips()+archTierChips()+archHideChips()+archiveHtml(cur)+'<button class="sec" id="archHide" style="width:100%;margin-top:8px">접기</button>'
         : '<button class="sec" id="archShow" style="width:100%">지난 2개월 보기</button>')
       +'</div>'
       +'<div class="card" id="dropNCard"><b>드롭 알림</b> <span class="chip" id="dropNChip">'+(dropNOn()?'가상 ON':'OFF')+'</span>'
@@ -242,6 +255,13 @@ try{if(!sessionStorage.getItem('ms_v')){sessionStorage.setItem('ms_v','1'); loca
         try{localStorage.setItem('msc_arch_t', b.dataset.at||'all');}catch(e){}
         render();
         try{legionTrack('archive_tier',{t:archTier()})}catch(e){}
+      };
+    });
+    root.querySelectorAll('#archH [data-ah]').forEach(function(b){
+      b.onclick=function(){
+        try{localStorage.setItem('msc_arch_hide', b.dataset.ah==='1'?'1':'0');}catch(e){}
+        render();
+        try{legionTrack('archive_hide_lock',{on:archHideLock()?1:0})}catch(e){}
       };
     });
     var dropN=document.getElementById('dropN');
