@@ -32,6 +32,37 @@ try{if(!sessionStorage.getItem('ms_v')){sessionStorage.setItem('ms_v','1'); loca
         +'<span class="chip">'+(open?'열림':'잠김')+'</span></div>';
     }).join('');
   }
+  /* WAVE38: Patreon-style past-drop archive. Local titles only — no MRR/subs. */
+  var archOpen=false;
+  function ymOf(off){
+    var d=new Date(); d.setDate(1); d.setMonth(d.getMonth()+off);
+    return {
+      label:d.getFullYear()+'년 '+(d.getMonth()+1)+'월',
+      prefix:d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')
+    };
+  }
+  function archiveList(){
+    var titles={Free:'공개 하이라이트',Plus:'멤버 노트',Elite:'비하인드'};
+    var days={Free:'01',Plus:'05',Elite:'03'};
+    var out=[];
+    [-1,-2].forEach(function(off){
+      var ym=ymOf(off);
+      ['Free','Plus','Elite'].forEach(function(n){
+        out.push({n:n,r:TIER_R[n],date:ym.prefix+'-'+days[n],title:titles[n]+' · '+ym.label});
+      });
+    });
+    return out;
+  }
+  function archiveHtml(curN){
+    var rank=TIER_R[curN]||0;
+    return archiveList().map(function(d){
+      var open=rank>=d.r;
+      return '<div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid #2a2438">'
+        +'<div><div style="font-size:13px">'+(open?'':'🔒 ')+d.title+'</div>'
+        +'<div class="sub" style="margin:2px 0 0">'+d.date+' · '+d.n+'</div></div>'
+        +'<span class="chip">'+(open?'열림':'잠김')+'</span></div>';
+    }).join('');
+  }
   var root=document.getElementById('app');
   var cur=localStorage.getItem('msc_tier')||'Free';
   /* GOLD50 TOP5: Memberful/Stripe Keep/Down. 숨김취소 금지 — 두 버튼 항상 같이. */
@@ -91,6 +122,12 @@ try{if(!sessionStorage.getItem('ms_v')){sessionStorage.setItem('ms_v','1'); loca
       +'<div class="card" style="border-color:#e0b552"><b>이번 달 드롭</b> <span class="chip">'+monthLabel()+'</span>'
       +'<p class="sub" style="margin:6px 0 4px">가상 칸 · 결제/매출 숫자 없음 · 현재 '+cur+'</p>'
       +dropListHtml(cur)+'</div>'
+      +'<div class="card" id="dropArch"><b>지난 드롭</b> <span class="chip">아카이브</span>'
+      +'<p class="sub" style="margin:6px 0 4px">가상 · 매출/구독자 숫자 없음 · 결제 아님</p>'
+      +(archOpen
+        ? archiveHtml(cur)+'<button class="sec" id="archHide" style="width:100%;margin-top:8px">접기</button>'
+        : '<button class="sec" id="archShow" style="width:100%">지난 2개월 보기</button>')
+      +'</div>'
       +'<div class="card"><b>비교 (가상)</b><table style="width:100%;font-size:12px;margin-top:8px;border-collapse:collapse">'
       +'<tr style="color:#8a8398"><td></td>'+tiers.map(function(t){return '<td style="padding:4px;text-align:center">'+(t.n===cur?badgeHtml(t.n):'<span style="opacity:.8">'+((BADGE[t.n]||{}).e||'')+' '+t.n+'</span>')+'</td>';}).join('')+'</tr>'
       +'<tr><td>월</td>'+tiers.map(function(t){return '<td style="padding:4px;text-align:center">₩'+t.p.toLocaleString()+'</td>';}).join('')+'</tr>'
@@ -128,6 +165,10 @@ try{if(!sessionStorage.getItem('ms_v')){sessionStorage.setItem('ms_v','1'); loca
         bumpStreak(); render(); try{legionTrack('activate',{tier:cur})}catch(e){}
       };
     });
+    var archShow=document.getElementById('archShow');
+    if(archShow) archShow.onclick=function(){ archOpen=true; render(); try{legionTrack('archive_open',{})}catch(e){} };
+    var archHide=document.getElementById('archHide');
+    if(archHide) archHide.onclick=function(){ archOpen=false; render(); };
     var cancel=document.getElementById('cancel');
     if(cancel) cancel.onclick=function(){
       cancelOpen=true; render();
