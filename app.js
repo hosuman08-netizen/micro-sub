@@ -301,6 +301,7 @@ try{if(!sessionStorage.getItem('ms_v')){sessionStorage.setItem('ms_v','1'); loca
     /* WAVE102: after copy keep #archCsvN row count. Status on button only. */
     /* WAVE112: copy confirm reverts to CSV 복사 · name. No fake MRR. */
     /* WAVE120: revert shows remaining seconds. No fake MRR. */
+    /* WAVE127: tap during revert = instant original. No fake MRR. */
     var archCsvCopy=document.getElementById('archCsvCopy');
     if(archCsvCopy) archCsvCopy.onclick=function(){
       var csv=archiveOpenCsv(cur);
@@ -312,8 +313,12 @@ try{if(!sessionStorage.getItem('ms_v')){sessionStorage.setItem('ms_v','1'); loca
       var revert=function(){
         keepN();
         try{clearInterval(archCsvCopy._revI);}catch(e){}
+        try{clearTimeout(archCsvCopy._revT);}catch(e2){}
+        archCsvCopy._revI=null;
+        archCsvCopy._revT=null;
         archCsvCopy.textContent=orig;
       };
+      if(archCsvCopy._revT){ revert(); return; }
       var leftLabel=function(start){
         var left=Math.max(0, REVERT_MS-(Date.now()-start));
         return '되돌림 '+(left/1000).toFixed(1)+'s';
