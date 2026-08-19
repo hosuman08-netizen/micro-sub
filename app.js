@@ -305,6 +305,7 @@ try{if(!sessionStorage.getItem('ms_v')){sessionStorage.setItem('ms_v','1'); loca
     /* WAVE133: month/tier chip during revert = instant orig. No fake MRR. */
     /* WAVE147: hide-lock chip during revert = instant orig. No fake MRR. */
     /* WAVE156: fold during revert = instant orig. No fake MRR. */
+    /* WAVE163: after fold-restore, focus CSV button. Archive stays open this tap. */
     var revertArchCsvCopyNow=function(){
       var btn=document.getElementById('archCsvCopy');
       if(!btn || !btn._revT) return false;
@@ -313,6 +314,14 @@ try{if(!sessionStorage.getItem('ms_v')){sessionStorage.setItem('ms_v','1'); loca
       btn._revI=null;
       btn._revT=null;
       btn.textContent='CSV 복사 · '+archiveCsvName();
+      return true;
+    };
+    var focusArchCsvCopy=function(){
+      var btn=document.getElementById('archCsvCopy');
+      if(!btn) return false;
+      try{btn.tabIndex=0;}catch(e0){}
+      try{btn.focus();}catch(e1){}
+      try{btn.scrollIntoView({block:'nearest'});}catch(e2){}
       return true;
     };
     var archCsvCopy=document.getElementById('archCsvCopy');
@@ -363,7 +372,8 @@ try{if(!sessionStorage.getItem('ms_v')){sessionStorage.setItem('ms_v','1'); loca
     };
     var archHide=document.getElementById('archHide');
     if(archHide) archHide.onclick=function(){
-      revertArchCsvCopyNow();
+      var did=revertArchCsvCopyNow();
+      if(did){ focusArchCsvCopy(); return; }
       archOpen=false; render();
     };
     root.querySelectorAll('#archM [data-am]').forEach(function(b){
