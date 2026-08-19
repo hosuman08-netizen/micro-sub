@@ -104,12 +104,21 @@ try{if(!sessionStorage.getItem('ms_v')){sessionStorage.setItem('ms_v','1'); loca
     var rank=TIER_R[curN]||0;
     return archiveFiltered(curN).filter(function(d){return rank>=d.r;}).length;
   }
+  /* WAVE78: CSV filename includes month + tier filter. No MRR/revenue. */
+  function archiveCsvName(){
+    var m=archMonth();
+    var t=archTier();
+    var month='all';
+    if(m==='-1'||m==='-2') month=ymOf(Number(m)).prefix;
+    var tier=(t==='Free'||t==='Plus'||t==='Elite')?t:'all';
+    return 'msc-archive-open-'+month+'-'+tier+'.csv';
+  }
   function exportArchiveCsv(curN){
     var csv=archiveOpenCsv(curN);
     try{
       var blob=new Blob([csv],{type:'text/csv;charset=utf-8'});
       var url=URL.createObjectURL(blob);
-      var a=document.createElement('a'); a.href=url; a.download='msc-archive-open.csv';
+      var a=document.createElement('a'); a.href=url; a.download=archiveCsvName();
       document.body.appendChild(a); a.click();
       if(a.parentNode) a.parentNode.removeChild(a);
       setTimeout(function(){try{URL.revokeObjectURL(url);}catch(e){}},400);
