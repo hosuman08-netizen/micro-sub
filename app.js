@@ -5,6 +5,22 @@ try{var _dk=new Date().toDateString();var _o=JSON.parse(localStorage.getItem('lw
 try{if(!sessionStorage.getItem('ms_v')){sessionStorage.setItem('ms_v','1'); localStorage.setItem('ms_days', (+(localStorage.getItem('ms_days')||0))+ (localStorage.getItem('ms_last')===new Date().toDateString()?0:1)); localStorage.setItem('ms_last', new Date().toDateString());}}catch(e){}
 (function(){
   var tiers=[{n:'Free',p:0,f:['기본 피드','광고 포함']},{n:'Plus',p:4900,f:['광고 제거','주간 드롭','북마크']},{n:'Elite',p:14900,f:['전체 드롭','DM 우선','얼리 액세스']}];
+  var TIER_R={Free:0,Plus:1,Elite:2};
+  function ymDay(dd){var d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(dd).padStart(2,'0');}
+  function monthLabel(){var d=new Date();return d.getFullYear()+'년 '+(d.getMonth()+1)+'월';}
+  var DROPS=[{n:'Free',r:0,date:ymDay(1),title:'공개 피드 하이라이트'},{n:'Plus',r:1,date:ymDay(5),title:'주간 드롭 · 멤버 노트'},{n:'Elite',r:2,date:ymDay(3),title:'얼리 액세스 비하인드'}];
+  function dropOf(n){var x=DROPS.filter(function(d){return d.n===n;})[0]; return x?x.date+' · '+x.title:'';}
+  function dropListHtml(curN){
+    var rank=TIER_R[curN]||0;
+    var rows=DROPS.slice().sort(function(a,b){return a.date<b.date?-1:1;});
+    return rows.map(function(d){
+      var open=rank>=d.r;
+      return '<div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid #2a2438">'
+        +'<div><div style="font-size:13px">'+(open?'':'🔒 ')+d.title+'</div>'
+        +'<div class="sub" style="margin:2px 0 0">'+d.date+' · '+d.n+'</div></div>'
+        +'<span class="chip">'+(open?'열림':'잠김')+'</span></div>';
+    }).join('');
+  }
   var root=document.getElementById('app');
   var cur=localStorage.getItem('msc_tier')||'Free';
   function dayKey(off){var d=new Date();d.setDate(d.getDate()+(off||0));return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');}
@@ -59,6 +75,9 @@ try{if(!sessionStorage.getItem('ms_v')){sessionStorage.setItem('ms_v','1'); loca
       +(nextTier?' <span class="chip">다음 '+nextTier+'</span>':'')+'</div>'
       +(stick>=3&&cur!=='Free'?'<p class="sub" style="margin:6px 0 0;color:#67e8f9">유지 '+stick+'일 · 리텐션 루프 ON</p>':'')
       +'<p class="sub" style="margin:8px 0 0">실결제 아님 · 티어 체험 시뮬 · 18+</p></div>'
+      +'<div class="card" style="border-color:#e0b552"><b>이번 달 드롭</b> <span class="chip">'+monthLabel()+'</span>'
+      +'<p class="sub" style="margin:6px 0 4px">가상 칸 · 결제/매출 숫자 없음 · 현재 '+cur+'</p>'
+      +dropListHtml(cur)+'</div>'
       +'<div class="card"><b>비교 (가상)</b><table style="width:100%;font-size:12px;margin-top:8px;border-collapse:collapse">'
       +'<tr style="color:#8a8398"><td></td>'+tiers.map(function(t){return '<td style="padding:4px;text-align:center">'+(t.n===cur?'<b style="color:#e0b552">'+t.n+'</b>':t.n)+'</td>';}).join('')+'</tr>'
       +'<tr><td>월</td>'+tiers.map(function(t){return '<td style="padding:4px;text-align:center">₩'+t.p.toLocaleString()+'</td>';}).join('')+'</tr>'
@@ -67,6 +86,7 @@ try{if(!sessionStorage.getItem('ms_v')){sessionStorage.setItem('ms_v','1'); loca
       +tiers.map(function(t){
         var on=t.n===cur;
         return '<div class="card" style="'+(on?'border-color:#e0b552':'')+'"><b>'+t.n+'</b> · ₩'+t.p.toLocaleString()+(on?' · ✓ 선택중':'')
+          +'<p class="sub" style="margin:6px 0 0">드롭 '+dropOf(t.n)+'</p>'
           +'<ul style="margin:8px 0 8px 18px;color:var(--dim);font-size:13px">'+t.f.map(function(x){return '<li>'+x+'</li>';}).join('')+'</ul>'
           +'<button data-t="'+t.n+'">'+(on?'유지':'선택 (가상)')+'</button></div>';
       }).join('')
