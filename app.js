@@ -65,6 +65,23 @@ try{if(!sessionStorage.getItem('ms_v')){sessionStorage.setItem('ms_v','1'); loca
   }
   var root=document.getElementById('app');
   var cur=localStorage.getItem('msc_tier')||'Free';
+  /* WAVE45: Patreon/Ko-fi drop notify toggle. Local only — no push, no MRR. */
+  function dropNOn(){try{return localStorage.getItem('msc_drop_n')==='1';}catch(e){return false;}}
+  function nextDropLine(curN){
+    var d=DROPS.filter(function(x){return x.n===curN;})[0]||DROPS[0];
+    var today=dayKey(0);
+    if(d.date>=today) return d.date+' · '+d.title;
+    var nd=new Date(); nd.setMonth(nd.getMonth()+1);
+    var dayN=parseInt(String(d.date).slice(-2),10)||1;
+    nd.setDate(dayN);
+    var ds=nd.getFullYear()+'-'+String(nd.getMonth()+1).padStart(2,'0')+'-'+String(nd.getDate()).padStart(2,'0');
+    return ds+' · '+d.title;
+  }
+  function retainLine(n){
+    var t=tiers.filter(function(x){return x.n===n;})[0]||tiers[0];
+    if(n==='Free') return 'Keep 다음: Plus 광고제거 · 주간드롭 · 북마크 · 숨김취소 없음';
+    return 'Keep '+n+': '+t.f.join(' · ')+' · 숨김취소 없음';
+  }
   /* GOLD50 TOP5: Memberful/Stripe Keep/Down. 숨김취소 금지 — 두 버튼 항상 같이. */
   var cancelOpen=false;
   function dayKey(off){var d=new Date();d.setDate(d.getDate()+(off||0));return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');}
@@ -118,6 +135,7 @@ try{if(!sessionStorage.getItem('ms_v')){sessionStorage.setItem('ms_v','1'); loca
       +(cur!=='Free'?' <span class="chip">연 환산 ₩'+yr.toLocaleString()+'</span>':'')
       +(nextTier?' <span class="chip">다음 '+nextTier+'</span>':'')+'</div>'
       +(stick>=3&&cur!=='Free'?'<p class="sub" style="margin:6px 0 0;color:#67e8f9">유지 '+stick+'일 · 리텐션 루프 ON</p>':'')
+      +'<p class="sub" id="retainLine" style="margin:6px 0 0;color:#e0b552">'+retainLine(cur)+'</p>'
       +'<p class="sub" style="margin:8px 0 0">실결제 아님 · 티어 체험 시뮬 · 18+'+(trial?' · 체험은 오늘 자정까지 · 숨김취소 없음':'')+'</p></div>'
       +'<div class="card" style="border-color:#e0b552"><b>이번 달 드롭</b> <span class="chip">'+monthLabel()+'</span>'
       +'<p class="sub" style="margin:6px 0 4px">가상 칸 · 결제/매출 숫자 없음 · 현재 '+cur+'</p>'
@@ -128,6 +146,10 @@ try{if(!sessionStorage.getItem('ms_v')){sessionStorage.setItem('ms_v','1'); loca
         ? archiveHtml(cur)+'<button class="sec" id="archHide" style="width:100%;margin-top:8px">접기</button>'
         : '<button class="sec" id="archShow" style="width:100%">지난 2개월 보기</button>')
       +'</div>'
+      +'<div class="card" id="dropNCard"><b>드롭 알림</b> <span class="chip" id="dropNChip">'+(dropNOn()?'가상 ON':'OFF')+'</span>'
+      +(dropNOn()?' <span class="chip">다음 '+nextDropLine(cur)+'</span>':'')
+      +'<p class="sub" style="margin:6px 0 8px">로컬 토글 · 푸시/서버 0 · 구독자·매출 숫자 없음 · 허위 MRR 0</p>'
+      +'<button class="sec" id="dropN" style="width:100%">드롭 알림 '+(dropNOn()?'끄기':'켜기')+'</button></div>'
       +'<div class="card"><b>비교 (가상)</b><table style="width:100%;font-size:12px;margin-top:8px;border-collapse:collapse">'
       +'<tr style="color:#8a8398"><td></td>'+tiers.map(function(t){return '<td style="padding:4px;text-align:center">'+(t.n===cur?badgeHtml(t.n):'<span style="opacity:.8">'+((BADGE[t.n]||{}).e||'')+' '+t.n+'</span>')+'</td>';}).join('')+'</tr>'
       +'<tr><td>월</td>'+tiers.map(function(t){return '<td style="padding:4px;text-align:center">₩'+t.p.toLocaleString()+'</td>';}).join('')+'</tr>'
@@ -169,6 +191,12 @@ try{if(!sessionStorage.getItem('ms_v')){sessionStorage.setItem('ms_v','1'); loca
     if(archShow) archShow.onclick=function(){ archOpen=true; render(); try{legionTrack('archive_open',{})}catch(e){} };
     var archHide=document.getElementById('archHide');
     if(archHide) archHide.onclick=function(){ archOpen=false; render(); };
+    var dropN=document.getElementById('dropN');
+    if(dropN) dropN.onclick=function(){
+      try{localStorage.setItem('msc_drop_n', dropNOn()?'0':'1');}catch(e){}
+      render();
+      try{legionTrack('drop_notify',{on:dropNOn()?1:0})}catch(e){}
+    };
     var cancel=document.getElementById('cancel');
     if(cancel) cancel.onclick=function(){
       cancelOpen=true; render();
