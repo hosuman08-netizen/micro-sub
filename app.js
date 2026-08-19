@@ -302,6 +302,17 @@ try{if(!sessionStorage.getItem('ms_v')){sessionStorage.setItem('ms_v','1'); loca
     /* WAVE112: copy confirm reverts to CSV 복사 · name. No fake MRR. */
     /* WAVE120: revert shows remaining seconds. No fake MRR. */
     /* WAVE127: tap during revert = instant original. No fake MRR. */
+    /* WAVE133: month/tier chip during revert = instant orig. No fake MRR. */
+    var revertArchCsvCopyNow=function(){
+      var btn=document.getElementById('archCsvCopy');
+      if(!btn || !btn._revT) return false;
+      try{clearInterval(btn._revI);}catch(e){}
+      try{clearTimeout(btn._revT);}catch(e2){}
+      btn._revI=null;
+      btn._revT=null;
+      btn.textContent='CSV 복사 · '+archiveCsvName();
+      return true;
+    };
     var archCsvCopy=document.getElementById('archCsvCopy');
     if(archCsvCopy) archCsvCopy.onclick=function(){
       var csv=archiveOpenCsv(cur);
@@ -352,6 +363,7 @@ try{if(!sessionStorage.getItem('ms_v')){sessionStorage.setItem('ms_v','1'); loca
     if(archHide) archHide.onclick=function(){ archOpen=false; render(); };
     root.querySelectorAll('#archM [data-am]').forEach(function(b){
       b.onclick=function(){
+        revertArchCsvCopyNow();
         try{localStorage.setItem('msc_arch_m', b.dataset.am||'all');}catch(e){}
         render();
         try{legionTrack('archive_month',{m:archMonth()})}catch(e){}
@@ -359,6 +371,7 @@ try{if(!sessionStorage.getItem('ms_v')){sessionStorage.setItem('ms_v','1'); loca
     });
     root.querySelectorAll('#archT [data-at]').forEach(function(b){
       b.onclick=function(){
+        revertArchCsvCopyNow();
         try{localStorage.setItem('msc_arch_t', b.dataset.at||'all');}catch(e){}
         render();
         try{legionTrack('archive_tier',{t:archTier()})}catch(e){}
