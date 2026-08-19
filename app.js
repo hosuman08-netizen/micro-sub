@@ -244,7 +244,7 @@ try{if(!sessionStorage.getItem('ms_v')){sessionStorage.setItem('ms_v','1'); loca
       +(archOpen
         ? archMonthChips()+archTierChips()+archHideChips()+archiveHtml(cur)
           +'<p class="sub" id="archCsvN" style="margin:8px 0 0">열림 '+archiveOpenCount(cur)+'행 · 매출숫자 0</p>'
-          +'<button class="sec" id="archCsv" style="width:100%;margin-top:8px">열림만 CSV (제목·날짜·티어)</button>'
+          +'<button class="sec" id="archCsv" style="width:100%;margin-top:8px">열림만 CSV · '+archiveCsvName()+'</button>'
           +'<button class="sec" id="archHide" style="width:100%;margin-top:8px">접기</button>'
         : '<button class="sec" id="archShow" style="width:100%">지난 2개월 보기</button>')
       +'</div>'
