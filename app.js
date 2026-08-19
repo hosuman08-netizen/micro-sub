@@ -71,11 +71,11 @@ try{if(!sessionStorage.getItem('ms_v')){sessionStorage.setItem('ms_v','1'); loca
     var nextTier=cur==='Free'?'Plus':(cur==='Plus'?'Elite':null);
     root.innerHTML='<div class="card">현재 티어: <b style="color:var(--gold)">'+cur+'</b> · 가상 · 정진 · Elite 창 '+eliteLeft()
       +'<div style="margin-top:6px"><span class="chip">🔥 '+sc+'일</span> <span class="chip">이 티어 '+stick+'일</span> <span class="chip">방문일 '+visits+'</span> <span class="chip">7일 유료일 '+pd+'</span>'
-      +(trial?' <span class="chip">오늘 체험 ON</span>':'')
+      +(trial?' <span class="chip" id="trialLeft">오늘 체험 <b>'+eliteLeft()+'</b> 남음</span>':'')
       +(cur!=='Free'?' <span class="chip">연 환산 ₩'+yr.toLocaleString()+'</span>':'')
       +(nextTier?' <span class="chip">다음 '+nextTier+'</span>':'')+'</div>'
       +(stick>=3&&cur!=='Free'?'<p class="sub" style="margin:6px 0 0;color:#67e8f9">유지 '+stick+'일 · 리텐션 루프 ON</p>':'')
-      +'<p class="sub" style="margin:8px 0 0">실결제 아님 · 티어 체험 시뮬 · 18+</p></div>'
+      +'<p class="sub" style="margin:8px 0 0">실결제 아님 · 티어 체험 시뮬 · 18+'+(trial?' · 체험은 오늘 자정까지 · 숨김취소 없음':'')+'</p></div>'
       +'<div class="card" style="border-color:#e0b552"><b>이번 달 드롭</b> <span class="chip">'+monthLabel()+'</span>'
       +'<p class="sub" style="margin:6px 0 4px">가상 칸 · 결제/매출 숫자 없음 · 현재 '+cur+'</p>'
       +dropListHtml(cur)+'</div>'
