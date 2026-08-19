@@ -38,6 +38,7 @@ try{if(!sessionStorage.getItem('ms_v')){sessionStorage.setItem('ms_v','1'); loca
   /* WAVE171: retap during ring = restart ring. No fake MRR. */
   /* WAVE175: ring tap = ring off. No fake MRR. */
   /* WAVE179: after ring off, keep CSV focus. No fake MRR. */
+  /* WAVE184: focus retap restarts ring — separate from CSV copy. No fake MRR. */
   var csvRingTok=0;
   function csvRingMs(){ return 400; }
   function csvRingIsOn(){
@@ -89,6 +90,14 @@ try{if(!sessionStorage.getItem('ms_v')){sessionStorage.setItem('ms_v','1'); loca
     try{btn.setAttribute('data-ring-off','1');}catch(e2){}
     try{btn.setAttribute('data-ring-tap','1');}catch(e3){}
     holdCsvFocus();
+  }
+  function restartCsvRingFromFocus(){
+    var btn=document.getElementById('archCsvCopy');
+    if(!btn || btn.getAttribute('data-focus-after-kill')!=='1') return false;
+    armCsvRing();
+    try{btn.setAttribute('data-re-ring','1');}catch(e0){}
+    try{btn.setAttribute('data-re-from-focus','1');}catch(e1){}
+    return true;
   }
   function ymOf(off){
     var d=new Date(); d.setDate(1); d.setMonth(d.getMonth()+off);
@@ -364,6 +373,7 @@ try{if(!sessionStorage.getItem('ms_v')){sessionStorage.setItem('ms_v','1'); loca
     /* WAVE163: after fold-restore, focus CSV button. Archive stays open this tap. */
     /* WAVE168: CSV button focus ring 0.4s. No fake MRR. */
     /* WAVE175: ring tap = ring off. No fake MRR. */
+    /* WAVE184: after kill+focus, retap restarts ring. Copy stays a later tap. */
     var revertArchCsvCopyNow=function(){
       var btn=document.getElementById('archCsvCopy');
       if(!btn || !btn._revT) return false;
@@ -386,6 +396,10 @@ try{if(!sessionStorage.getItem('ms_v')){sessionStorage.setItem('ms_v','1'); loca
     var archCsvCopy=document.getElementById('archCsvCopy');
     if(archCsvCopy) archCsvCopy.onclick=function(){
       if(csvRingIsOn()){ killCsvRing(); return; }
+      if(archCsvCopy.getAttribute('data-focus-after-kill')==='1'){
+        restartCsvRingFromFocus();
+        return;
+      }
       var csv=archiveOpenCsv(cur);
       var n=archiveOpenCount(cur);
       var nEl=document.getElementById('archCsvN');
