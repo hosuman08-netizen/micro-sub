@@ -35,8 +35,13 @@ try{if(!sessionStorage.getItem('ms_v')){sessionStorage.setItem('ms_v','1'); loca
   /* WAVE38: Patreon-style past-drop archive. Local titles only — no MRR/subs. */
   var archOpen=false;
   /* WAVE168: CSV button focus ring 0.4s. No fake MRR. */
+  /* WAVE171: retap during ring = restart ring. No fake MRR. */
   var csvRingTok=0;
   function csvRingMs(){ return 400; }
+  function csvRingIsOn(){
+    var btn=document.getElementById('archCsvCopy');
+    return !!(btn && btn.getAttribute('data-csv-ring')==='1');
+  }
   function clearCsvRing(){
     var btn=document.getElementById('archCsvCopy');
     if(!btn) return;
@@ -44,14 +49,17 @@ try{if(!sessionStorage.getItem('ms_v')){sessionStorage.setItem('ms_v','1'); loca
     btn.style.outlineOffset='';
     btn.style.boxShadow='';
     try{btn.setAttribute('data-csv-ring','0');}catch(e0){}
+    try{btn.setAttribute('data-re-ring','0');}catch(e1){}
   }
   function armCsvRing(){
     var btn=document.getElementById('archCsvCopy');
     if(!btn) return false;
+    var retr=btn.getAttribute('data-csv-ring')==='1';
     btn.style.outline='2px solid #e0b552';
     btn.style.outlineOffset='2px';
     btn.style.boxShadow='0 0 0 4px #e0b55255';
     try{btn.setAttribute('data-csv-ring','1');}catch(e1){}
+    try{btn.setAttribute('data-re-ring', retr?'1':'0');}catch(e2){}
     var tok=++csvRingTok;
     setTimeout(function(){
       if(tok!==csvRingTok) return;
@@ -332,6 +340,7 @@ try{if(!sessionStorage.getItem('ms_v')){sessionStorage.setItem('ms_v','1'); loca
     /* WAVE156: fold during revert = instant orig. No fake MRR. */
     /* WAVE163: after fold-restore, focus CSV button. Archive stays open this tap. */
     /* WAVE168: CSV button focus ring 0.4s. No fake MRR. */
+    /* WAVE171: retap during ring = restart ring. No fake MRR. */
     var revertArchCsvCopyNow=function(){
       var btn=document.getElementById('archCsvCopy');
       if(!btn || !btn._revT) return false;
@@ -353,6 +362,7 @@ try{if(!sessionStorage.getItem('ms_v')){sessionStorage.setItem('ms_v','1'); loca
     };
     var archCsvCopy=document.getElementById('archCsvCopy');
     if(archCsvCopy) archCsvCopy.onclick=function(){
+      if(csvRingIsOn()){ armCsvRing(); return; }
       var csv=archiveOpenCsv(cur);
       var n=archiveOpenCount(cur);
       var nEl=document.getElementById('archCsvN');
