@@ -55,14 +55,18 @@ try{if(!sessionStorage.getItem('ms_v')){sessionStorage.setItem('ms_v','1'); loca
   }
   /* WAVE50: archive month chips. Local titles only — no MRR/subs. */
   function archMonth(){try{return localStorage.getItem('msc_arch_m')||'all';}catch(e){return 'all';}}
+  /* WAVE57: archive tier chips. Virtual titles only — no MRR/subs. */
+  function archTier(){try{return localStorage.getItem('msc_arch_t')||'all';}catch(e){return 'all';}}
   function archiveHtml(curN){
     var rank=TIER_R[curN]||0;
     var m=archMonth();
+    var t=archTier();
     var list=archiveList();
     if(m==='-1'||m==='-2'){
       var ym=ymOf(Number(m));
       list=list.filter(function(d){return String(d.date).indexOf(ym.prefix)===0;});
     }
+    if(t==='Free'||t==='Plus'||t==='Elite') list=list.filter(function(d){return d.n===t;});
     var rows=list.map(function(d){
       var open=rank>=d.r;
       return '<div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid #2a2438">'
@@ -83,6 +87,19 @@ try{if(!sessionStorage.getItem('ms_v')){sessionStorage.setItem('ms_v','1'); loca
       +chip('all','전체')
       +chip('-1',mon(-1))
       +chip('-2',mon(-2))
+      +'</div>';
+  }
+  function archTierChips(){
+    var cur=archTier();
+    function chip(v,label){
+      var on=cur===v;
+      return '<button type="button" class="sec" data-at="'+v+'" style="flex:1;'+(on?'border-color:#e0b552;color:#e0b552;font-weight:800':'')+'">'+label+'</button>';
+    }
+    return '<div id="archT" class="row" style="margin:4px 0 4px;gap:6px">'
+      +chip('all','전체')
+      +chip('Free','Free')
+      +chip('Plus','Plus')
+      +chip('Elite','Elite')
       +'</div>';
   }
   var root=document.getElementById('app');
@@ -165,7 +182,7 @@ try{if(!sessionStorage.getItem('ms_v')){sessionStorage.setItem('ms_v','1'); loca
       +'<div class="card" id="dropArch"><b>지난 드롭</b> <span class="chip">아카이브</span>'
       +'<p class="sub" style="margin:6px 0 4px">가상 · 매출/구독자 숫자 없음 · 결제 아님</p>'
       +(archOpen
-        ? archMonthChips()+archiveHtml(cur)+'<button class="sec" id="archHide" style="width:100%;margin-top:8px">접기</button>'
+        ? archMonthChips()+archTierChips()+archiveHtml(cur)+'<button class="sec" id="archHide" style="width:100%;margin-top:8px">접기</button>'
         : '<button class="sec" id="archShow" style="width:100%">지난 2개월 보기</button>')
       +'</div>'
       +'<div class="card" id="dropNCard"><b>드롭 알림</b> <span class="chip" id="dropNChip">'+(dropNOn()?'가상 ON':'OFF')+'</span>'
@@ -218,6 +235,13 @@ try{if(!sessionStorage.getItem('ms_v')){sessionStorage.setItem('ms_v','1'); loca
         try{localStorage.setItem('msc_arch_m', b.dataset.am||'all');}catch(e){}
         render();
         try{legionTrack('archive_month',{m:archMonth()})}catch(e){}
+      };
+    });
+    root.querySelectorAll('#archT [data-at]').forEach(function(b){
+      b.onclick=function(){
+        try{localStorage.setItem('msc_arch_t', b.dataset.at||'all');}catch(e){}
+        render();
+        try{legionTrack('archive_tier',{t:archTier()})}catch(e){}
       };
     });
     var dropN=document.getElementById('dropN');
