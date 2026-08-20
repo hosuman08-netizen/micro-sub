@@ -346,7 +346,7 @@ try{if(!sessionStorage.getItem('ms_v')){sessionStorage.setItem('ms_v','1'); loca
       +'<div id="moneyPipe" style="margin-top:12px;padding:10px;border:1px solid #c5a46e44;border-radius:12px;background:#16121c;text-align:center;font-size:12px">'
       +'<div style="color:#e0b552;font-weight:700;margin-bottom:4px">💎 후원 · 파이프 (엔터 18+)</div>'
       +'<a style="color:#ece8f1;margin:0 6px" href="mailto:hoyashi95@gmail.com?subject=%5BMicroSub%5D%20support">☕ 후원 문의</a>'
-      +'<a style="color:#e0b552;margin:0 6px" href="https://hosuman08-netizen.github.io/legion-hub/?utm_source=msc&utm_medium=pipe">🎮 Arcade</a></div>';
+      +'</div>';
     root.querySelectorAll('button[data-t]').forEach(function(b){
       b.onclick=function(){
         if(cur!==b.dataset.t) localStorage.setItem('msc_since',String(Date.now()));
